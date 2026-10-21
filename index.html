@@ -89,6 +89,7 @@
 <main>
   <div class="status" id="status">불러오는 중…</div>
   <div id="list"></div>
+  <div class="status" style="margin-top:28px"><a href="#" id="rekey">접속 키 다시 입력</a></div>
 </main>
 <button class="fab primary" id="add">+ 추가</button>
 
@@ -170,21 +171,36 @@
     $('keyInput').value = '';
     if (!$('keyDlg').open) $('keyDlg').showModal();
   }
-  function call(name) {
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  // 구글 웹 앱은 가끔 20~30초 걸리거나 오류 화면을 준다. 키가 틀린 경우만 키를 다시 묻고, 나머지는 재시도한다.
+  async function call(name) {
     var args = Array.prototype.slice.call(arguments, 1);
     var map = {
       api_list: ['list'], api_status: ['status'], api_save: ['save', args[0]],
       api_delete: ['delete', { row: args[0], title: args[1] }], api_flag: ['flag', { on: args[0] }]
     };
     var m = map[name];
-    var q = new URLSearchParams({ key: KEY, api: m[0] });
-    if (m[1] !== undefined) q.set('d', JSON.stringify(m[1]));
-    return fetch(API + '?' + q.toString()).then(function (r) { return r.text(); }).then(function (t) {
-      var j;
-      try { j = JSON.parse(t); } catch (e) { needKey('키가 맞지 않아요. 다시 입력해주세요.'); throw new Error('키가 맞지 않아요'); }
-      if (!j.ok) throw new Error(j.error);
-      return j.data;
-    }, function () { throw new Error('인터넷 연결을 확인해주세요'); });
+    var safeToRetry = name === 'api_list' || name === 'api_status'; // 저장/삭제는 중복 실행을 피하려고 재시도하지 않음
+    var attempts = safeToRetry ? 4 : 1;
+    var last = '서버가 응답하지 않아요. 잠시 후 다시 시도해주세요';
+    for (var i = 0; i < attempts; i++) {
+      if (i) await sleep(2500 * i);
+      var q = new URLSearchParams({ key: KEY, api: m[0] });
+      if (m[1] !== undefined) q.set('d', JSON.stringify(m[1]));
+      var t;
+      try {
+        t = await (await fetch(API + '?' + q.toString())).text();
+      } catch (e) { last = '인터넷 연결을 확인해주세요'; continue; }
+      var j = null;
+      try { j = JSON.parse(t); } catch (e) {}
+      if (j) {
+        if (!j.ok) throw new Error(j.error);
+        return j.data;
+      }
+      if (t.trim() === 'forbidden') { needKey('키가 맞지 않아요. 다시 입력해주세요.'); throw new Error('키가 맞지 않아요'); }
+      last = '구글 서버가 일시적으로 오류를 줬어요';
+    }
+    throw new Error(last);
   }
   function toast(t) {
     var el = $('toast'); el.textContent = t; el.classList.add('show');
@@ -365,15 +381,25 @@
     } catch (e) { $('status').textContent = e.message; }
   }
   var loadSeq = 0;
+  function cacheGet() { try { return JSON.parse(localStorage.getItem('gb_cache') || 'null'); } catch (e) { return null; } }
+  function cacheSet(r) { try { localStorage.setItem('gb_cache', JSON.stringify(r)); } catch (e) {} }
+  function applyList(r) {
+    var now = Date.now();
+    state.items = r.items.filter(function (x) { var t = deleted[delKey(x)]; return !(t && now - t < 20000); });
+    state.categories = r.categories; render();
+  }
   async function load() {
     var my = ++loadSeq;
+    var cached = cacheGet();
+    if (cached && !state.items.length) { applyList(cached); $('status').textContent = '저장된 목록을 먼저 보여드려요 · 최신으로 갱신 중…'; }
+    else if (!state.items.length) $('list').textContent = '불러오는 중… (구글 서버가 느리면 최대 30초 걸려요)';
     try {
       var r = await call('api_list');
       if (my !== loadSeq) return; // 더 최신 요청이 있으면 이 응답은 버림
-      var now = Date.now();
-      state.items = r.items.filter(function (x) { var t = deleted[delKey(x)]; return !(t && now - t < 20000); });
-      state.categories = r.categories; render();
-    } catch (e) { if (my === loadSeq) $('list').textContent = e.message; }
+      cacheSet(r); applyList(r);
+    } catch (e) {
+      if (my === loadSeq) { if (state.items.length) toast(e.message); else $('list').textContent = e.message; }
+    }
     loadStatus();
   }
   $('tabLive').onclick = function () { tab = 'live'; render(); };
@@ -412,6 +438,7 @@
     KEY = v; try { localStorage.setItem('gb_key', v); } catch (er) {}
     $('keyDlg').close(); load();
   });
+  $('rekey').addEventListener('click', function (e) { e.preventDefault(); needKey(''); });
   if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(function () {}); }
   if (!KEY) needKey(); else load();
 </script>
