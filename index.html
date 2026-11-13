@@ -68,6 +68,31 @@
   .hint.bad { color: var(--danger); }
   .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: -6px; }
   .chips button { padding: 2px 12px; min-height: 30px; font-size: 13px; border-radius: 999px; }
+  .fieldwrap { position: relative; display: block; }
+  .fieldwrap input { padding-right: 48px; }
+  .calbtn { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); width: 38px; height: 38px; min-height: 0; padding: 0; border: none; background: transparent; display: grid; place-items: center; color: var(--ink); border-radius: 10px; }
+  .calbtn:hover, .calbtn:focus-visible { background: var(--chip); color: var(--chip-ink); }
+  .calbtn svg { width: 22px; height: 22px; }
+  #calDlg { width: min(360px, calc(100vw - 24px)); }
+  .cal { padding: 14px 14px 16px; display: grid; gap: 8px; }
+  .calhead { display: flex; align-items: center; justify-content: space-between; }
+  .calhead b { font-size: 16px; }
+  .calhead button { width: 40px; padding: 0; font-size: 20px; line-height: 1; }
+  .calwk, .calgrid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; }
+  .calwk span { font-size: 12px; color: var(--sub); padding: 4px 0; }
+  .calwk span:first-child, .calgrid .d:nth-child(7n+1) { color: var(--danger); }
+  .calgrid { row-gap: 2px; }
+  .calgrid .d { min-height: 40px; padding: 0; border: none; background: transparent; border-radius: 0; font-size: 15px; color: inherit; }
+  .calgrid .d.blank { visibility: hidden; }
+  .calgrid .d.today span { outline: 1.5px solid var(--accent); outline-offset: -2px; }
+  .calgrid .d span { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; }
+  .calgrid .d.mid { background: var(--chip); }
+  .calgrid .d.s, .calgrid .d.e { color: var(--accent-ink); }
+  .calgrid .d.s span, .calgrid .d.e span { background: var(--accent); outline: none; font-weight: 700; }
+  .calgrid .d.s.range { background: linear-gradient(to right, transparent 50%, var(--chip) 50%); }
+  .calgrid .d.e.range { background: linear-gradient(to left, transparent 50%, var(--chip) 50%); }
+  .calsum { font-size: 14px; min-height: 22px; text-align: center; }
+  .calhelp { font-size: 12px; color: var(--sub); min-height: 16px; text-align: center; }
   .foot { display: flex; gap: 8px; justify-content: flex-end; }
   .msg { font-size: 13px; color: var(--danger); min-height: 18px; }
   .toast { position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 16px; border-radius: 999px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; }
@@ -106,7 +131,7 @@
       <input id="title" placeholder="예: 과학 오답노트" autocomplete="off" spellcheck="false" enterkeyhint="next">
     </label>
     <label>날짜 (마감/일정, 기간이면 시작일)
-      <input id="date" inputmode="numeric" placeholder="예: 10.19  /  1019  /  오늘  /  내일" autocomplete="off" spellcheck="false" enterkeyhint="next">
+      <span class="fieldwrap"><input id="date" inputmode="numeric" placeholder="예: 10.19  /  1019  /  오늘  /  내일" autocomplete="off" spellcheck="false" enterkeyhint="next"><button type="button" class="calbtn" aria-label="달력에서 고르기"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.4" y="5.4" width="17.2" height="15.2" rx="3.2" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M3.4 10.2h17.2" stroke="currentColor" stroke-width="1.9" fill="none"/><path d="M7.4 3.2v4.2M10.9 3.2v4.2M14.4 3.2v4.2M17.9 3.2v4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/><g fill="currentColor"><rect x="6.2" y="12.2" width="2" height="2" rx=".5"/><rect x="9.8" y="12.2" width="2" height="2" rx=".5"/><rect x="13.4" y="12.2" width="2" height="2" rx=".5"/><rect x="17" y="12.2" width="1.2" height="2" rx=".5" opacity="0"/><rect x="6.2" y="15.7" width="2" height="2" rx=".5"/><rect x="9.8" y="15.7" width="2" height="2" rx=".5"/><rect x="13.4" y="15.7" width="2" height="2" rx=".5"/></g></svg></button></span>
       <span class="hint" id="dateHint"></span>
     </label>
     <div class="chips" id="dateChips">
@@ -116,7 +141,7 @@
       <button type="button" data-d="7">+1주</button>
     </div>
     <label>종료일 (기간일 때만, 비워두면 하루)
-      <input id="end" inputmode="numeric" placeholder="예: 10.23" autocomplete="off" spellcheck="false" enterkeyhint="next">
+      <span class="fieldwrap"><input id="end" inputmode="numeric" placeholder="예: 10.23" autocomplete="off" spellcheck="false" enterkeyhint="next"><button type="button" class="calbtn" aria-label="달력에서 고르기"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.4" y="5.4" width="17.2" height="15.2" rx="3.2" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M3.4 10.2h17.2" stroke="currentColor" stroke-width="1.9" fill="none"/><path d="M7.4 3.2v4.2M10.9 3.2v4.2M14.4 3.2v4.2M17.9 3.2v4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/><g fill="currentColor"><rect x="6.2" y="12.2" width="2" height="2" rx=".5"/><rect x="9.8" y="12.2" width="2" height="2" rx=".5"/><rect x="13.4" y="12.2" width="2" height="2" rx=".5"/><rect x="17" y="12.2" width="1.2" height="2" rx=".5" opacity="0"/><rect x="6.2" y="15.7" width="2" height="2" rx=".5"/><rect x="9.8" y="15.7" width="2" height="2" rx=".5"/><rect x="13.4" y="15.7" width="2" height="2" rx=".5"/></g></svg></button></span>
       <span class="hint" id="endHint"></span>
     </label>
     <label>설명 (여러 줄이면 줄바꿈)
@@ -130,6 +155,23 @@
       <button type="submit" class="primary" id="save">저장</button>
     </div>
   </form>
+</dialog>
+<dialog id="calDlg">
+  <div class="cal">
+    <div class="calhead">
+      <button type="button" id="calPrev" aria-label="이전 달">&#8249;</button>
+      <b id="calTitle"></b>
+      <button type="button" id="calNext" aria-label="다음 달">&#8250;</button>
+    </div>
+    <div class="calwk"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+    <div class="calgrid" id="calGrid"></div>
+    <div class="calsum" id="calSum"></div>
+    <div class="calhelp" id="calHelp"></div>
+    <div class="foot">
+      <button type="button" id="calClear">날짜 지우기</button>
+      <button type="button" class="primary" id="calOk">확인</button>
+    </div>
+  </div>
 </dialog>
 <dialog id="delDlg">
   <form method="dialog" id="delForm">
@@ -415,6 +457,64 @@
     try { await call('api_flag', true); toast('반영을 요청했어요 (최대 10분 + PC 입력 3분 대기)'); loadStatus(); }
     catch (e) { toast(e.message); }
   };
+
+  // ---- 달력: 시작일/종료일을 한 달력에서 고른다 ----
+  // 날짜를 눌렀을 때의 새 [시작일, 종료일]. 한쪽만 있어도 그대로 두고 이어서 고를 수 있다.
+  function calPick(s, e, d) {
+    if (!s) { return [d, e && e >= d ? e : '']; }  // 시작일이 비어 있으면 시작일로 (종료일이 더 늦을 때만 유지)
+    if (e || d < s) return [d, ''];                // 둘 다 정해졌거나 시작일보다 앞이면 새로 시작
+    if (d === s) return [s, ''];                   // 같은 날을 다시 누르면 하루짜리
+    return [s, d];                                 // 시작일 뒤의 날짜는 종료일
+  }
+  var cal = { s: '', e: '', y: 2026, m: 0 };
+  function openCal() {
+    var s = parseDateText($('date').value), e = parseDateText($('end').value);
+    cal.s = s || ''; cal.e = e || '';
+    if (cal.s && cal.e && cal.e < cal.s) cal.e = '';
+    var base = parse(cal.s || cal.e || todayStr());
+    cal.y = base.getFullYear(); cal.m = base.getMonth();
+    renderCal();
+    $('calDlg').showModal();
+  }
+  function renderCal() {
+    $('calTitle').textContent = cal.y + '년 ' + (cal.m + 1) + '월';
+    var grid = $('calGrid'); grid.textContent = '';
+    var first = new Date(cal.y, cal.m, 1).getDay(), days = new Date(cal.y, cal.m + 1, 0).getDate(), today = todayStr();
+    for (var i = 0; i < first; i++) { var b = document.createElement('button'); b.type = 'button'; b.className = 'd blank'; b.tabIndex = -1; grid.appendChild(b); }
+    for (var day = 1; day <= days; day++) {
+      var ds = iso(new Date(cal.y, cal.m, day)), btn = document.createElement('button'), cls = 'd';
+      btn.type = 'button'; btn.setAttribute('data-d', ds);
+      var hasRange = cal.s && cal.e;
+      if (ds === cal.s) cls += ' s' + (hasRange ? ' range' : '');
+      if (ds === cal.e) cls += ' e' + (hasRange ? ' range' : '');
+      if (hasRange && ds > cal.s && ds < cal.e) cls += ' mid';
+      if (ds === today) cls += ' today';
+      btn.className = cls;
+      var sp = document.createElement('span'); sp.textContent = day; btn.appendChild(sp);
+      grid.appendChild(btn);
+    }
+    var parts = [];
+    if (cal.s) parts.push('시작 ' + fmt(cal.s));
+    if (cal.e) parts.push('종료 ' + fmt(cal.e));
+    $('calSum').textContent = parts.length ? parts.join('  →  ') : '날짜를 눌러 고르세요';
+    $('calHelp').textContent = cal.s && !cal.e ? '종료일도 고르려면 한 번 더 누르세요 · 하루짜리면 확인' : (!cal.s && cal.e ? '시작일을 눌러 고르세요' : '');
+  }
+  $('calGrid').addEventListener('click', function (ev) {
+    var b = ev.target.closest ? ev.target.closest('button[data-d]') : null;
+    if (!b) return;
+    var r = calPick(cal.s, cal.e, b.getAttribute('data-d')); cal.s = r[0]; cal.e = r[1]; renderCal();
+  });
+  $('calPrev').onclick = function () { cal.m--; if (cal.m < 0) { cal.m = 11; cal.y--; } renderCal(); };
+  $('calNext').onclick = function () { cal.m++; if (cal.m > 11) { cal.m = 0; cal.y++; } renderCal(); };
+  $('calClear').onclick = function () { cal.s = ''; cal.e = ''; renderCal(); };
+  $('calOk').onclick = function () {
+    $('date').value = cal.s ? shortDate(cal.s) : '';
+    $('end').value = cal.e ? shortDate(cal.e) : '';
+    hintFor('date', 'dateHint'); hintFor('end', 'endHint');
+    $('calDlg').close();
+  };
+  Array.prototype.forEach.call(document.querySelectorAll('.calbtn'), function (b) { b.addEventListener('click', openCal); });
+
   var order = ['otherCat', 'title', 'date', 'end', 'note'];
   $('form').addEventListener('keydown', function (e) {
     if (e.isComposing || e.keyCode === 229) return; // 한글 조합 중 Enter는 글자 확정용
